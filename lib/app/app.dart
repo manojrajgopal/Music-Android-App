@@ -26,7 +26,7 @@ class _CadenceAppState extends ConsumerState<CadenceApp> {
   Widget build(BuildContext context) {
     final mode = ref.watch(settingsProvider.select((s) => s.themeMode));
     return MaterialApp.router(
-      title: 'Cadence',
+      title: 'Music',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

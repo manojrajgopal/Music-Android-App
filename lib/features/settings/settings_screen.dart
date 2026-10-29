@@ -132,7 +132,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const _Header('About'),
           const _StorageTile(),
-          const ListTile(title: Text('Cadence'), subtitle: Text('Version 1.0.0')),
+          const ListTile(title: Text('Music'), subtitle: Text('Version 1.0.0')),
           const SizedBox(height: Spacing.xxl),
         ],
       ),
@@ -156,7 +156,7 @@ class _StorageTile extends ConsumerWidget {
     } catch (_) {}
     return ListTile(
       leading: const Icon(Icons.sd_storage_outlined),
-      title: const Text('Music stored by Cadence'),
+      title: const Text('Songs stored by Music'),
       subtitle: Text('$files files · ${formatBytes(bytes)}'),
     );
   }

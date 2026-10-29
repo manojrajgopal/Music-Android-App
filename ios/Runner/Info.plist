@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Cadence</string>
+	<string>Music</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>cadence</string>
+	<string>Music</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -71,7 +71,7 @@
 		<string>audio</string>
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Cadence uses the microphone only when you tap voice search, to turn your speech into a search of your music library.</string>
+	<string>Music uses the microphone only when you tap voice search, to turn your speech into a search of your music library.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Voice search converts what you say into a search of your music library. Apple may process speech to provide recognition.</string>
 	<key>LSApplicationQueriesSchemes</key>

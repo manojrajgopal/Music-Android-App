@@ -254,7 +254,7 @@ class _YoutubeCard extends StatelessWidget {
             Text(
               link.youtubeVideoId == null
                   ? 'This YouTube link does not point to a single video.'
-                  : 'Cadence does not download or extract audio from YouTube. Open it in YouTube instead, '
+                  : 'Music does not download or extract audio from YouTube. Open it in YouTube instead, '
                         'or import an audio file you are allowed to keep.',
               style: context.text.bodyMedium,
             ),

@@ -182,7 +182,7 @@ class _TrackMenu extends ConsumerWidget {
                   parent,
                   title: 'Delete audio file?',
                   message:
-                      'This permanently deletes the copy of "${live.title}" stored by Cadence and removes it from your library. '
+                      'This permanently deletes the copy of "${live.title}" stored by Music and removes it from your library. '
                       'Original files elsewhere on your device are not touched. This cannot be undone.',
                   confirmLabel: 'Delete',
                   destructive: true,

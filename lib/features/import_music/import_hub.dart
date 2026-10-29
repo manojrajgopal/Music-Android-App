@@ -158,9 +158,9 @@ Future<void> startFileImport(BuildContext context, WidgetRef ref) async {
   if (!settings.copyConsent) {
     final ok = await confirm(
       context,
-      title: 'Keep a copy in Cadence?',
+      title: 'Keep a copy in Music?',
       message:
-          'Files chosen with the system picker only grant temporary access, so Cadence stores a private copy '
+          'Files chosen with the system picker only grant temporary access, so Music stores a private copy '
           'of each imported song on this device for reliable playback. Copies use storage space; you can delete '
           'them from the song menu at any time. Nothing is uploaded.',
       confirmLabel: 'Agree and choose files',

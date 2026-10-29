@@ -41,7 +41,7 @@ abstract final class ImportRules {
 }
 
 abstract final class AppInfo {
-  static const name = 'Cadence';
+  static const name = 'Music';
   static const backupFormat = 'cadence-backup';
   static const backupVersion = 1;
 }

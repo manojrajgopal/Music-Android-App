@@ -88,7 +88,7 @@ LinkCheck checkLink(String input) {
     return LinkCheck(
       LinkKind.streamingService,
       uri: uri,
-      message: 'This is a streaming service link. Cadence cannot download from streaming services.',
+      message: 'This is a streaming service link. Music cannot download from streaming services.',
     );
   }
   if (uri.userInfo.isNotEmpty) {

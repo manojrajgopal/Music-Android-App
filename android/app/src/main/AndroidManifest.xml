@@ -13,7 +13,7 @@
          storage permission is requested. -->
 
     <application
-        android:label="Cadence"
+        android:label="Music"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">

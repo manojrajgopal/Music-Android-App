@@ -232,7 +232,7 @@ class _EditFormState extends ConsumerState<_EditForm> {
             ),
             const SizedBox(height: Spacing.md),
             Text(
-              'Changes are saved in Cadence only. The original audio file and its embedded tags are not modified.',
+              'Changes are saved in Music only. The original audio file and its embedded tags are not modified.',
               textAlign: TextAlign.center,
               style: context.text.bodySmall?.copyWith(color: context.surfaces.muted),
             ),

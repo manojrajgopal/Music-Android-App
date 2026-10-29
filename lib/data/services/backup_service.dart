@@ -166,7 +166,7 @@ class BackupService {
     try {
       archive = ZipDecoder().decodeBytes(bytes);
     } catch (_) {
-      throw const AppException('invalid', 'This file is not a Cadence backup.');
+      throw const AppException('invalid', 'This file is not a Music app backup.');
     }
     Map<String, Object?> readJson(String name) {
       final file = archive.findFile(name);
@@ -180,14 +180,14 @@ class BackupService {
 
     final manifest = readJson('manifest.json');
     if (manifest['format'] != AppInfo.backupFormat) {
-      throw const AppException('invalid', 'This file is not a Cadence backup.');
+      throw const AppException('invalid', 'This file is not a Music app backup.');
     }
     final version = manifest['version'];
     if (version is! int || version < 1) throw const AppException('invalid', 'The backup version is not recognised.');
     if (version > AppInfo.backupVersion) {
       throw const AppException(
         'newer',
-        'This backup was made by a newer version of Cadence. Update the app to restore it.',
+        'This backup was made by a newer version of Music. Update the app to restore it.',
       );
     }
     final data = readJson('data.json');
