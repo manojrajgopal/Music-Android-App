@@ -38,6 +38,25 @@ class ParsedTags {
   final int? discNumber;
   final Uint8List? artwork;
   final bool titleFromFileName;
+
+  /// Fills fields the file's tags lack from another source.
+  ParsedTags withFallbacks({String? title, String? artist, String? album, Uint8List? artwork}) {
+    final useTitle = titleFromFileName && cleanDisplay(title) != null;
+    return ParsedTags(
+      title: useTitle ? cleanDisplay(title)! : this.title,
+      titleFromFileName: titleFromFileName && !useTitle,
+      artist: this.artist ?? cleanDisplay(artist),
+      album: this.album ?? cleanDisplay(album),
+      albumArtist: albumArtist,
+      genre: genre,
+      language: language,
+      releaseYear: releaseYear,
+      durationMs: durationMs,
+      trackNumber: trackNumber,
+      discNumber: discNumber,
+      artwork: this.artwork ?? artwork,
+    );
+  }
 }
 
 enum AudioFormat { mp3, m4a, flac, wav, ogg }

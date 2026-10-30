@@ -153,6 +153,7 @@ class _Controls extends ConsumerWidget {
     final loop = ref.watch(loopModeProvider).value ?? LoopMode.off;
     final shuffle = ref.watch(shuffleProvider);
     final sleep = ref.watch(sleepTimerProvider);
+    final speed = ref.watch(speedProvider).value ?? 1.0;
     final muted = context.surfaces.muted;
     final accent = context.colors.primary;
 
@@ -189,7 +190,6 @@ class _Controls extends ConsumerWidget {
               ),
           ],
         ),
-        if (track != null) ...[const SizedBox(height: Spacing.sm), _Rating(trackId: track.id, rating: track.rating)],
         const SizedBox(height: Spacing.md),
         const _SeekBar(),
         const SizedBox(height: Spacing.sm),
@@ -249,6 +249,12 @@ class _Controls extends ConsumerWidget {
               onTap: () => showSleepTimerSheet(context),
             ),
             _SmallAction(icon: Icons.queue_music_rounded, label: 'Queue', onTap: () => context.push(Routes.queue)),
+            _SmallAction(
+              icon: Icons.speed_rounded,
+              label: speed == 1.0 ? 'Speed' : '${_speedText(speed)}×',
+              active: speed != 1.0,
+              onTap: () => showSpeedSheet(context),
+            ),
             if (track != null)
               _SmallAction(
                 icon: Icons.playlist_add_rounded,
@@ -310,32 +316,6 @@ class _SmallAction extends StatelessWidget {
   }
 }
 
-class _Rating extends ConsumerWidget {
-  const _Rating({required this.trackId, required this.rating});
-
-  final String trackId;
-  final int? rating;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final repo = ref.read(libraryRepositoryProvider);
-    return Row(
-      children: [
-        for (var i = 1; i <= 5; i++)
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            tooltip: rating == i ? 'Clear rating' : 'Rate $i star${i == 1 ? '' : 's'}',
-            icon: Icon(
-              (rating ?? 0) >= i ? Icons.star_rounded : Icons.star_outline_rounded,
-              color: (rating ?? 0) >= i ? context.colors.primary : context.surfaces.muted,
-            ),
-            onPressed: () => repo.setRating(trackId, rating == i ? null : i),
-          ),
-      ],
-    );
-  }
-}
-
 /// Seek bar isolated so only it rebuilds on position ticks.
 class _SeekBar extends ConsumerStatefulWidget {
   const _SeekBar();
@@ -380,6 +360,43 @@ class _SeekBarState extends ConsumerState<_SeekBar> {
           ],
         ),
       ],
+    );
+  }
+}
+
+String _speedText(double speed) =>
+    speed.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
+
+Future<void> showSpeedSheet(BuildContext context) =>
+    showModalBottomSheet<void>(context: context, builder: (_) => const _SpeedSheet());
+
+class _SpeedSheet extends ConsumerWidget {
+  const _SpeedSheet();
+
+  static const _speeds = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final speed = ref.watch(speedProvider).value ?? 1.0;
+    return SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.page),
+            child: Text('Playback speed', style: context.text.titleLarge),
+          ),
+          for (final s in _speeds)
+            ListTile(
+              title: Text(s == 1.0 ? 'Normal' : '${_speedText(s)}×'),
+              trailing: s == speed ? Icon(Icons.check_rounded, color: context.colors.primary) : null,
+              onTap: () {
+                ref.read(playbackControllerProvider).setSpeed(s);
+                Navigator.pop(context);
+              },
+            ),
+        ],
+      ),
     );
   }
 }

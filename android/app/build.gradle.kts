@@ -30,11 +30,28 @@ android {
         versionName = flutter.versionName
     }
 
+    // The audio downloader runs Python and ffmpeg as processes straight from
+    // the native library folder, so the libraries must be extracted on install.
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+            // Prebuilt and already stripped; the .zip.so archives are not ELF
+            // files, so the release strip step fails on them.
+            keepDebugSymbols += listOf(
+                "**/libpython.so", "**/libpython.zip.so", "**/libffmpeg.so", "**/libffmpeg.zip.so",
+                "**/libffprobe.so", "**/libqjs.so",
+            )
+            // Flutter has no x86 engine, so the extractor's x86 copies are dead weight.
+            excludes += "lib/x86/**"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }
@@ -47,6 +64,12 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // yt-dlp + Python + ffmpeg for saving audio from links (MediaDownloader.kt).
+    implementation("io.github.junkfood02.youtubedl-android:library:0.18.1")
+    implementation("io.github.junkfood02.youtubedl-android:ffmpeg:0.18.1")
 }
 
 // Every release build (`flutter build apk --release`) also saves the APK as

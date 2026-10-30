@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/theme/app_theme.dart';
 import '../../audio/playback_controller.dart';
 import '../../core/utils/format.dart';
+import '../../core/widgets/now_playing_bars.dart';
 import '../../core/widgets/common.dart';
 
 /// Up Next: reorder, remove, jump, shuffle and clear.
@@ -80,7 +81,7 @@ class QueueScreen extends ConsumerWidget {
                     child: ListTile(
                       onTap: () => playback.jumpTo(i),
                       leading: isCurrent
-                          ? Icon(Icons.graphic_eq_rounded, color: context.colors.primary)
+                          ? const NowPlayingBars(size: 20)
                           : Text('${i + 1}', style: context.text.bodySmall),
                       title: Text(
                         item.title,

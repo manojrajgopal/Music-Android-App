@@ -22,6 +22,7 @@ class TrackCarousel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6);
+    final currentId = ref.watch(currentTrackIdProvider);
     return HorizontalCarousel(
       height: size + 52 * scale,
       itemCount: tracks.length,
@@ -33,6 +34,7 @@ class TrackCarousel extends ConsumerWidget {
           subtitle: t.artist ?? 'Unknown artist',
           size: size,
           badge: ranked ? RankBadge(i + 1) : null,
+          playing: t.id == currentId,
           onTap: () => ref.read(playbackControllerProvider).playTracks(tracks, startIndex: i, context: this.context),
           onLongPress: () => showTrackMenu(context, ref, t),
         );

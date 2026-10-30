@@ -100,6 +100,13 @@ class CadenceAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandle
   Future<void> play() => _player.play();
 
   @override
+  Future<void> setSpeed(double speed) async {
+    await _player.setSpeed(speed);
+    // Keeps the notification's progress moving at the new rate.
+    _broadcastState(_player.playbackEvent);
+  }
+
+  @override
   Future<void> pause() => _player.pause();
 
   @override

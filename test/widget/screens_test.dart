@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:cadence/app/theme/app_theme.dart';
 import 'package:cadence/app/theme/artwork_color_controller.dart';
 import 'package:cadence/audio/playback_controller.dart';
+import 'package:cadence/core/widgets/now_playing_bars.dart';
 import 'package:cadence/core/widgets/track_widgets.dart';
 import 'package:cadence/data/database/app_database.dart';
 import 'package:cadence/features/home/home_screen.dart';
@@ -53,7 +54,7 @@ void main() {
       expect(center, 1);
     });
 
-    screenTest('center action sheet offers import, URL, playlist, rescan and queue', (tester) async {
+    screenTest('center action sheet offers import, link, playlist, rescan and queue', (tester) async {
       await pumpScreen(
         tester,
         Builder(
@@ -64,7 +65,7 @@ void main() {
       );
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
-      for (final t in ['Import files', 'From a URL', 'New playlist', 'Rescan library', 'Open queue']) {
+      for (final t in ['Import files', 'From a link', 'New playlist', 'Rescan library', 'Open queue']) {
         expect(find.text(t), findsOneWidget);
       }
     });
@@ -208,6 +209,9 @@ void main() {
       verify(() => env.playback.toggleShuffle()).called(1);
       expect(find.text('Sleep'), findsOneWidget);
       expect(find.text('Queue'), findsOneWidget);
+      expect(find.text('Speed'), findsOneWidget);
+      expect(find.byIcon(Icons.star_outline_rounded), findsNothing);
+      expect(find.byIcon(Icons.star_rounded), findsNothing);
     });
 
     screenTest('queue shows items, highlights current, and jumps on tap', (tester) async {
@@ -222,7 +226,7 @@ void main() {
       );
       await tester.pump();
       expect(find.text('1 up next'), findsOneWidget);
-      expect(find.byIcon(Icons.graphic_eq_rounded), findsOneWidget);
+      expect(find.byType(NowPlayingBars), findsOneWidget);
       await tester.tap(find.text('Song 2'));
       verify(() => env.playback.jumpTo(2)).called(1);
     });

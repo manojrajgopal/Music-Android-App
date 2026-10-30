@@ -8,6 +8,7 @@ import '../../app/theme/app_theme.dart';
 import '../../audio/playback_controller.dart';
 import '../../core/utils/format.dart';
 import '../../core/widgets/artwork_image.dart';
+import '../../core/widgets/now_playing_bars.dart';
 import '../../core/widgets/common.dart';
 import '../../core/widgets/track_widgets.dart';
 import '../../data/database/app_database.dart';
@@ -161,53 +162,67 @@ class _ResumeCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final playback = ref.read(playbackControllerProvider);
     final progress = (track.lastPositionMs ?? 0) / (track.durationMs ?? 1);
+    // The song that is playing shows animated bars instead of resume controls.
+    final isCurrent = ref.watch(currentTrackIdProvider) == track.id;
+    final art = ArtworkImage(artworkKey: track.artworkKey, size: 76, radius: Radii.md, seed: track.title);
     return Container(
       width: 280,
       decoration: BoxDecoration(color: context.surfaces.raised, borderRadius: BorderRadius.circular(Radii.lg)),
       padding: const EdgeInsets.all(Spacing.sm),
       child: Row(
         children: [
-          ArtworkImage(artworkKey: track.artworkKey, size: 76, radius: Radii.md, seed: track.title),
+          isCurrent ? NowPlayingOverlay(radius: Radii.md, barSize: 26, child: art) : art,
           const SizedBox(width: Spacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.titleSmall),
                 Text(
-                  '${formatMs(track.lastPositionMs)} of ${formatMs(track.durationMs)}',
-                  style: context.text.bodySmall?.copyWith(color: context.surfaces.muted),
+                  track.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.titleSmall?.copyWith(color: isCurrent ? context.colors.primary : null),
                 ),
-                const SizedBox(height: Spacing.sm),
-                LinearProgressIndicator(value: progress.clamp(0, 1), borderRadius: BorderRadius.circular(2)),
+                if (isCurrent)
+                  Text('Playing now', style: context.text.bodySmall?.copyWith(color: context.colors.primary))
+                else ...[
+                  Text(
+                    '${formatMs(track.lastPositionMs)} of ${formatMs(track.durationMs)}',
+                    style: context.text.bodySmall?.copyWith(color: context.surfaces.muted),
+                  ),
+                  const SizedBox(height: Spacing.sm),
+                  LinearProgressIndicator(value: progress.clamp(0, 1), borderRadius: BorderRadius.circular(2)),
+                ],
               ],
             ),
           ),
-          PopupMenuButton<String>(
-            tooltip: 'Resume options',
-            onSelected: (v) {
-              switch (v) {
-                case 'resume':
-                  playback.resume(track);
-                case 'restart':
-                  playback.playTracks([track]);
-                case 'remove':
-                  ref.read(libraryRepositoryProvider).tracks.setLastPosition(track.id, null);
-              }
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'resume', child: Text('Resume')),
-              PopupMenuItem(value: 'restart', child: Text('Play from start')),
-              PopupMenuItem(value: 'remove', child: Text('Remove from Continue Listening')),
-            ],
-            icon: const Icon(Icons.more_vert_rounded),
-          ),
-          IconButton.filledTonal(
-            tooltip: 'Resume ${track.title}',
-            icon: const Icon(Icons.play_arrow_rounded),
-            onPressed: () => playback.resume(track),
-          ),
+          if (!isCurrent) ...[
+            PopupMenuButton<String>(
+              tooltip: 'Resume options',
+              onSelected: (v) {
+                switch (v) {
+                  case 'resume':
+                    playback.resume(track);
+                  case 'restart':
+                    playback.playTracks([track]);
+                  case 'remove':
+                    ref.read(libraryRepositoryProvider).tracks.setLastPosition(track.id, null);
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'resume', child: Text('Resume')),
+                PopupMenuItem(value: 'restart', child: Text('Play from start')),
+                PopupMenuItem(value: 'remove', child: Text('Remove from Continue Listening')),
+              ],
+              icon: const Icon(Icons.more_vert_rounded),
+            ),
+            IconButton.filledTonal(
+              tooltip: 'Resume ${track.title}',
+              icon: const Icon(Icons.play_arrow_rounded),
+              onPressed: () => playback.resume(track),
+            ),
+          ],
         ],
       ),
     );

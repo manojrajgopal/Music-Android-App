@@ -137,6 +137,7 @@ class PlaybackController {
 
   Future<void> togglePlay() => _handler.player.playing ? _handler.pause() : _handler.play();
   Future<void> pause() => _handler.pause();
+  Future<void> setSpeed(double speed) => _handler.setSpeed(speed);
   Future<void> next() => _handler.skipToNext();
   Future<void> previous() => _handler.skipToPrevious();
   Future<void> seek(Duration d) => _handler.seek(d);
@@ -340,6 +341,8 @@ final isPlayingProvider = StreamProvider<bool>((ref) => ref.watch(audioHandlerPr
 final positionProvider = StreamProvider<Duration>((ref) => ref.watch(audioHandlerProvider).player.positionStream);
 
 final durationProvider = StreamProvider<Duration?>((ref) => ref.watch(audioHandlerProvider).player.durationStream);
+
+final speedProvider = StreamProvider<double>((ref) => ref.watch(audioHandlerProvider).player.speedStream);
 
 final loopModeProvider = StreamProvider<LoopMode>((ref) => ref.watch(audioHandlerProvider).player.loopModeStream);
 

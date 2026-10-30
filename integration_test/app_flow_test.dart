@@ -14,7 +14,7 @@ import 'package:cadence/data/repositories/settings_repository.dart';
 import 'package:cadence/data/services/backup_service.dart';
 import 'package:cadence/data/services/import_service.dart';
 import 'package:cadence/data/services/storage_paths.dart';
-import 'package:cadence/data/services/url_import_service.dart';
+import 'package:cadence/data/services/media_download_service.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -197,9 +197,9 @@ void main() {
     expect((await db2.tracksDao.byId(b.track!.id))!.availability, Availability.missing);
     expect(await db2.tracksDao.allTracks(), hasLength(2));
 
-    // 17. YouTube links are recognised and never downloaded.
-    debugPrint('IT step: 17. YouTube links are recognised and nev');
-    expect(checkLink('https://youtu.be/dQw4w9WgXcQ').kind, LinkKind.youtube);
+    // 17. Shared text yields the link to download.
+    debugPrint('IT step: 17. Shared text yields the link to downlo');
+    expect(extractLink('Listen: https://youtu.be/dQw4w9WgXcQ')?.host, 'youtu.be');
 
     // 19. Sleep timer pauses playback when its deadline passes.
     debugPrint('IT step: 19. Sleep timer pauses playback when its');

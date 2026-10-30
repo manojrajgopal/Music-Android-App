@@ -8,6 +8,7 @@ import '../../app/theme/app_theme.dart';
 import '../../core/widgets/artwork_image.dart';
 import '../../core/widgets/common.dart';
 import '../library/library_providers.dart';
+import '../library/library_screen.dart';
 
 Future<int?> createPlaylistFlow(BuildContext context, WidgetRef ref, {bool open = true}) async {
   final name = await promptText(context, title: 'New playlist', hint: 'Playlist name', confirmLabel: 'Create');
@@ -37,18 +38,24 @@ class _AddToPlaylistSheet extends ConsumerStatefulWidget {
 
 class _AddToPlaylistSheetState extends ConsumerState<_AddToPlaylistSheet> {
   final _selected = <int>{};
+  bool _favourite = false;
 
   Future<void> _save() async {
     final dao = ref.read(databaseProvider).playlistsDao;
     for (final id in _selected) {
       await dao.addTracks(id, widget.trackIds);
     }
+    if (_favourite) {
+      final library = ref.read(libraryRepositoryProvider);
+      for (final id in widget.trackIds) {
+        await library.setFavorite(id, true);
+      }
+    }
     if (!mounted) return;
     final messenger = ScaffoldMessenger.maybeOf(context);
     Navigator.pop(context);
-    messenger?.showSnackBar(
-      SnackBar(content: Text('Added to ${_selected.length} playlist${_selected.length == 1 ? '' : 's'}')),
-    );
+    final count = _selected.length + (_favourite ? 1 : 0);
+    messenger?.showSnackBar(SnackBar(content: Text('Added to $count playlist${count == 1 ? '' : 's'}')));
   }
 
   @override
@@ -65,9 +72,15 @@ class _AddToPlaylistSheetState extends ConsumerState<_AddToPlaylistSheet> {
             child: Row(
               children: [
                 Expanded(child: Text('Add to playlist', style: context.text.titleLarge)),
-                FilledButton(onPressed: _selected.isEmpty ? null : _save, child: const Text('Add')),
+                FilledButton(onPressed: _selected.isEmpty && !_favourite ? null : _save, child: const Text('Add')),
               ],
             ),
+          ),
+          CheckboxListTile(
+            value: _favourite,
+            onChanged: (v) => setState(() => _favourite = v!),
+            secondary: const FavouriteSongsCover(size: 44, radius: Radii.sm),
+            title: const Text(FavouriteSongsTile.title),
           ),
           ListTile(
             leading: const Icon(Icons.add_rounded),

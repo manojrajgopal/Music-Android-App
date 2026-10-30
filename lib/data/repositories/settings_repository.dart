@@ -175,6 +175,7 @@ class SettingsRepository {
   static const _settingsKey = 'settings.v1';
   static const _queueKey = 'queue.v1';
   static const _sleepKey = 'sleepTimer.deadline';
+  static const _downloadsKey = 'downloadedLinks.v1';
 
   AppSettings load() {
     final raw = _prefs.getString(_settingsKey);
@@ -219,6 +220,22 @@ class SettingsRepository {
   DateTime? get sleepDeadline {
     final ms = _prefs.getInt(_sleepKey);
     return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  /// The library song saved from a link (see `linkKey`), if any.
+  String? downloadedTrack(String linkKey) => _downloadedLinks()[linkKey];
+
+  Future<void> rememberDownload(String linkKey, String trackId) =>
+      _prefs.setString(_downloadsKey, jsonEncode({..._downloadedLinks(), linkKey: trackId}));
+
+  Map<String, String> _downloadedLinks() {
+    final raw = _prefs.getString(_downloadsKey);
+    if (raw == null) return const {};
+    try {
+      return (jsonDecode(raw) as Map).cast<String, String>();
+    } catch (_) {
+      return const {};
+    }
   }
 
   Future<void> setSleepDeadline(DateTime? deadline) =>

@@ -31,51 +31,60 @@ class MiniPlayer extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            InkWell(
-              onTap: () => context.push(Routes.player),
-              child: SizedBox(
-                height: 60,
-                child: Row(
-                  children: [
-                    const SizedBox(width: Spacing.sm),
-                    Hero(
-                      tag: 'now-playing-art',
-                      child: ArtworkImage(artworkKey: track?.artworkKey, size: 44, radius: Radii.sm, seed: title),
-                    ),
-                    const SizedBox(width: Spacing.md),
-                    Expanded(
-                      child: Semantics(
-                        label: 'Now playing: $title by $artist. Open player',
-                        button: true,
-                        excludeSemantics: true,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.titleSmall),
-                            Text(
-                              artist,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: context.text.bodySmall?.copyWith(color: context.surfaces.muted),
-                            ),
-                          ],
+            // Swipe left for the next song, right for the previous one.
+            GestureDetector(
+              onHorizontalDragEnd: (d) {
+                final v = d.primaryVelocity ?? 0;
+                if (v.abs() < 300) return;
+                final playback = ref.read(playbackControllerProvider);
+                v < 0 ? playback.next() : playback.previous();
+              },
+              child: InkWell(
+                onTap: () => context.push(Routes.player),
+                child: SizedBox(
+                  height: 60,
+                  child: Row(
+                    children: [
+                      const SizedBox(width: Spacing.sm),
+                      Hero(
+                        tag: 'now-playing-art',
+                        child: ArtworkImage(artworkKey: track?.artworkKey, size: 44, radius: Radii.sm, seed: title),
+                      ),
+                      const SizedBox(width: Spacing.md),
+                      Expanded(
+                        child: Semantics(
+                          label: 'Now playing: $title by $artist. Open player',
+                          button: true,
+                          excludeSemantics: true,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.titleSmall),
+                              Text(
+                                artist,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: context.text.bodySmall?.copyWith(color: context.surfaces.muted),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      tooltip: playing ? 'Pause' : 'Play',
-                      iconSize: 32,
-                      icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded),
-                      onPressed: () => ref.read(playbackControllerProvider).togglePlay(),
-                    ),
-                    IconButton(
-                      tooltip: 'Next track',
-                      icon: const Icon(Icons.skip_next_rounded),
-                      onPressed: () => ref.read(playbackControllerProvider).next(),
-                    ),
-                    const SizedBox(width: Spacing.xs),
-                  ],
+                      IconButton(
+                        tooltip: playing ? 'Pause' : 'Play',
+                        iconSize: 32,
+                        icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                        onPressed: () => ref.read(playbackControllerProvider).togglePlay(),
+                      ),
+                      IconButton(
+                        tooltip: 'Next track',
+                        icon: const Icon(Icons.skip_next_rounded),
+                        onPressed: () => ref.read(playbackControllerProvider).next(),
+                      ),
+                      const SizedBox(width: Spacing.xs),
+                    ],
+                  ),
                 ),
               ),
             ),

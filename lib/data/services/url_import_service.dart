@@ -10,93 +10,6 @@ import '../../core/errors/app_exception.dart';
 import 'metadata_service.dart';
 import 'storage_paths.dart';
 
-enum LinkKind { directAudio, youtube, streamingService, invalid }
-
-class LinkCheck {
-  const LinkCheck(this.kind, {this.uri, this.message, this.youtubeVideoId});
-
-  final LinkKind kind;
-  final Uri? uri;
-  final String? message;
-  final String? youtubeVideoId;
-}
-
-/// Services whose content may not be downloaded as files. Links to them are
-/// recognised and refused instead of being fetched.
-const _streamingHosts = {
-  'spotify.com',
-  'open.spotify.com',
-  'soundcloud.com',
-  'music.apple.com',
-  'deezer.com',
-  'tidal.com',
-  'music.amazon.com',
-  'jiosaavn.com',
-  'gaana.com',
-  'wynk.in',
-  'pandora.com',
-  'bandcamp.com',
-  'audiomack.com',
-  'vimeo.com',
-  'instagram.com',
-  'facebook.com',
-  'tiktok.com',
-};
-
-final _ytId = RegExp(r'^[A-Za-z0-9_-]{11}$');
-
-/// Recognises YouTube URLs (www, m., music., youtu.be, shorts, embed).
-String? youtubeVideoId(Uri uri) {
-  final host = uri.host.toLowerCase().replaceFirst(RegExp(r'^(www|m|music)\.'), '');
-  String? id;
-  if (host == 'youtu.be') {
-    id = uri.pathSegments.firstOrNull;
-  } else if (host == 'youtube.com' || host == 'youtube-nocookie.com') {
-    if (uri.path == '/watch') {
-      id = uri.queryParameters['v'];
-    } else if (uri.pathSegments.length >= 2 &&
-        const {'shorts', 'embed', 'live', 'v'}.contains(uri.pathSegments.first)) {
-      id = uri.pathSegments[1];
-    } else {
-      return '';
-    }
-  } else {
-    return null;
-  }
-  return id != null && _ytId.hasMatch(id) ? id : '';
-}
-
-bool _isStreamingHost(String host) {
-  final h = host.toLowerCase();
-  return _streamingHosts.any((s) => h == s || h.endsWith('.$s'));
-}
-
-/// Classifies a pasted link before any network access.
-LinkCheck checkLink(String input) {
-  final uri = Uri.tryParse(input.trim());
-  if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
-    return const LinkCheck(LinkKind.invalid, message: 'Enter a complete link starting with https://');
-  }
-  final yt = youtubeVideoId(uri);
-  if (yt != null) {
-    return LinkCheck(LinkKind.youtube, uri: uri, youtubeVideoId: yt.isEmpty ? null : yt);
-  }
-  if (uri.scheme != 'https') {
-    return LinkCheck(LinkKind.invalid, uri: uri, message: 'Only secure https:// links are supported.');
-  }
-  if (_isStreamingHost(uri.host)) {
-    return LinkCheck(
-      LinkKind.streamingService,
-      uri: uri,
-      message: 'This is a streaming service link. Music cannot download from streaming services.',
-    );
-  }
-  if (uri.userInfo.isNotEmpty) {
-    return LinkCheck(LinkKind.invalid, uri: uri, message: 'Links containing credentials are not supported.');
-  }
-  return LinkCheck(LinkKind.directAudio, uri: uri);
-}
-
 /// True for loopback, private, link-local, CGNAT, multicast and unspecified
 /// addresses, which a download must never reach.
 bool isPrivateAddress(InternetAddress a) {
@@ -152,7 +65,8 @@ const _audioMime = {
   'binary/octet-stream',
 };
 
-/// Downloads directly-linked audio files with strict validation:
+/// Downloads directly-linked audio files — the fallback behind
+/// [MediaDownloadService] — with strict validation:
 /// https only, no private-network destinations (checked on every redirect),
 /// content sniffed from bytes, size and time limits, temporary file with
 /// atomic rename on success.
@@ -186,9 +100,6 @@ class UrlImportService {
           );
     if (addresses.isEmpty || addresses.any(isPrivateAddress)) {
       throw const AppException('private', 'Links to local or private network addresses are not allowed.');
-    }
-    if (_isStreamingHost(host) || youtubeVideoId(uri) != null) {
-      throw const AppException('streaming', 'The link redirected to a streaming service, which cannot be downloaded.');
     }
   }
 

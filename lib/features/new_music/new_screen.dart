@@ -319,6 +319,7 @@ class _BestNew extends ConsumerWidget {
                     title: shown[i].title,
                     subtitle: '${shown[i].artist ?? 'Unknown artist'} · added ${formatDate(shown[i].dateAdded)}',
                     size: width,
+                    playing: shown[i].id == ref.watch(currentTrackIdProvider),
                     onTap: () =>
                         ref.read(playbackControllerProvider).playTracks(shown, startIndex: i, context: 'best-new'),
                     onLongPress: () => showTrackMenu(context, ref, shown[i]),

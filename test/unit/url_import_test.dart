@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cadence/core/errors/app_exception.dart';
+import 'package:cadence/data/services/media_download_service.dart';
 import 'package:cadence/data/services/url_import_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -49,37 +50,34 @@ ResponseBody redirect(String to) => ResponseBody.fromString(
 );
 
 void main() {
-  group('link classification', () {
-    test('requires https and a host', () {
-      expect(checkLink('http://example.com/a.mp3').kind, LinkKind.invalid);
-      expect(checkLink('ftp://example.com/a.mp3').kind, LinkKind.invalid);
-      expect(checkLink('not a url').kind, LinkKind.invalid);
-      expect(checkLink('https://user:pw@example.com/a.mp3').kind, LinkKind.invalid);
-      expect(checkLink('https://example.com/a.mp3').kind, LinkKind.directAudio);
+  group('link extraction', () {
+    test('finds the link in pasted or shared text', () {
+      expect(extractLink('https://youtu.be/dQw4w9WgXcQ').toString(), 'https://youtu.be/dQw4w9WgXcQ');
+      expect(
+        extractLink('Listen to this: https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10 so good').toString(),
+        'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10',
+      );
+      expect(extractLink('youtu.be/dQw4w9WgXcQ').toString(), 'https://youtu.be/dQw4w9WgXcQ');
+      expect(extractLink('www.example.com/a.mp3').toString(), 'https://www.example.com/a.mp3');
+      expect(extractLink('http://example.com/a.mp3').toString(), 'http://example.com/a.mp3');
+      expect(extractLink('not a url'), isNull);
+      expect(extractLink(''), isNull);
     });
 
-    test('recognises YouTube links in all common forms', () {
-      for (final url in [
-        'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-        'https://youtu.be/dQw4w9WgXcQ',
-        'https://m.youtube.com/watch?v=dQw4w9WgXcQ&t=10',
-        'https://music.youtube.com/watch?v=dQw4w9WgXcQ',
-        'https://www.youtube.com/shorts/dQw4w9WgXcQ',
-        'http://youtube.com/embed/dQw4w9WgXcQ',
-      ]) {
-        final check = checkLink(url);
-        expect(check.kind, LinkKind.youtube, reason: url);
-        expect(check.youtubeVideoId, 'dQw4w9WgXcQ', reason: url);
-      }
-      expect(checkLink('https://www.youtube.com/@channel').kind, LinkKind.youtube);
-      expect(checkLink('https://www.youtube.com/@channel').youtubeVideoId, isNull);
+    test('linkKey treats the same song shared differently as one link', () {
+      String key(String url) => linkKey(Uri.parse(url));
+      const id = 'youtube:Qe8fa4b5xNU';
+      expect(key('https://youtu.be/Qe8fa4b5xNU?si=eVc1qC4vwtcm8slh'), id);
+      expect(key('https://www.youtube.com/watch?v=Qe8fa4b5xNU&t=10'), id);
+      expect(key('https://m.youtube.com/watch?v=Qe8fa4b5xNU'), id);
+      expect(key('https://music.youtube.com/watch?v=Qe8fa4b5xNU&list=RD'), id);
+      expect(key('https://youtube.com/shorts/Qe8fa4b5xNU?feature=share'), id);
+      expect(key('https://soundcloud.com/a/b?utm_source=x'), 'soundcloud.com/a/b');
+      expect(key('https://soundcloud.com/a/b'), isNot(key('https://soundcloud.com/a/c')));
     });
+  });
 
-    test('refuses streaming services', () {
-      expect(checkLink('https://open.spotify.com/track/123').kind, LinkKind.streamingService);
-      expect(checkLink('https://soundcloud.com/a/b').kind, LinkKind.streamingService);
-    });
-
+  group('direct downloads', () {
     test('identifies private and local addresses', () {
       for (final ip in [
         '127.0.0.1',
@@ -137,11 +135,10 @@ void main() {
       expect(s.inspect(Uri.parse('https://cdn.example/x.mp3')), throwsA(isA<AppException>()));
     });
 
-    test('redirects to private networks, http or streaming services are rejected', () async {
+    test('redirects to private networks or http are rejected', () async {
       final s = service({
         'https://cdn.example/a.mp3': () => redirect('https://internal.example/a.mp3'),
         'https://cdn.example/b.mp3': () => redirect('http://cdn.example/b.mp3'),
-        'https://cdn.example/c.mp3': () => redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
       });
       await expectLater(
         s.inspect(Uri.parse('https://cdn.example/a.mp3')),
@@ -150,10 +147,6 @@ void main() {
       await expectLater(
         s.inspect(Uri.parse('https://cdn.example/b.mp3')),
         throwsA(isA<AppException>().having((e) => e.code, 'code', 'insecure')),
-      );
-      await expectLater(
-        s.inspect(Uri.parse('https://cdn.example/c.mp3')),
-        throwsA(isA<AppException>().having((e) => e.code, 'code', 'streaming')),
       );
     });
 

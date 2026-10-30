@@ -281,6 +281,7 @@ class _PlaylistsView extends ConsumerWidget {
       value: ref.watch(playlistsProvider),
       data: (list) => ListView(
         children: [
+          const FavouriteSongsTile(),
           ListTile(
             leading: Container(
               width: 56,
@@ -311,6 +312,48 @@ class _PlaylistsView extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The built-in "Favourite Songs" playlist: every song with a heart, always
+/// first, and never sorted or reordered by hand.
+class FavouriteSongsTile extends ConsumerWidget {
+  const FavouriteSongsTile({super.key});
+
+  static const title = 'Favourite Songs';
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(favoritesProvider).value?.length ?? 0;
+    return ListTile(
+      minTileHeight: 72,
+      leading: const FavouriteSongsCover(size: 56),
+      title: const Text(title),
+      subtitle: Text(count == 0 ? 'Tap the heart on a song to add it' : '$count song${count == 1 ? '' : 's'}'),
+      onTap: () => context.push(Routes.collection(CollectionType.favorites, 'all')),
+    );
+  }
+}
+
+class FavouriteSongsCover extends StatelessWidget {
+  const FavouriteSongsCover({super.key, required this.size, this.radius = Radii.md});
+
+  final double size;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(radius),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [context.colors.primary, context.colors.tertiary],
+      ),
+    ),
+    child: Icon(Icons.favorite_rounded, color: Colors.white, size: size * 0.45),
+  );
 }
 
 class _GroupList extends ConsumerWidget {

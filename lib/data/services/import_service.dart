@@ -26,6 +26,17 @@ class ImportResult {
   final Track? duplicateOf;
 }
 
+/// Details known from where a file came from (e.g. a download's page), used
+/// when the file's own tags lack them.
+class ImportHints {
+  const ImportHints({this.title, this.artist, this.album, this.artwork});
+
+  final String? title;
+  final String? artist;
+  final String? album;
+  final Uint8List? artwork;
+}
+
 class RescanReport {
   RescanReport();
 
@@ -57,6 +68,7 @@ class ImportService {
     required String displayName,
     TrackSourceType sourceType = TrackSourceType.localFile,
     bool moveInsteadOfCopy = false,
+    ImportHints? hints,
   }) async {
     final jobId = await _db.miscDao.startJob(
       displayName,
@@ -99,7 +111,13 @@ class ImportService {
         }
       }
 
-      final track = await indexFile(managed, displayName: displayName, hash: hash, sourceType: sourceType);
+      final track = await indexFile(
+        managed,
+        displayName: displayName,
+        hash: hash,
+        sourceType: sourceType,
+        hints: hints,
+      );
       final similar = await _findSimilar(track);
       await _db.miscDao.finishJob(jobId, ImportJobStatus.succeeded, trackId: track.id);
       return ImportResult(
@@ -134,8 +152,12 @@ class ImportService {
     required String displayName,
     required String hash,
     required TrackSourceType sourceType,
+    ImportHints? hints,
   }) async {
-    final tags = await _metadata.read(file.path, displayName: displayName);
+    final read = await _metadata.read(file.path, displayName: displayName);
+    final tags = hints == null
+        ? read
+        : read.withFallbacks(title: hints.title, artist: hints.artist, album: hints.album, artwork: hints.artwork);
     final artworkKey = tags.artwork == null ? null : await _artwork.store(tags.artwork!);
     final id = _uuid.v4();
     final now = DateTime.now();

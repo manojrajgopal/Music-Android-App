@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- audio_service looks these drawables up by name from Dart (the playback
+     notification's icon in main.dart and its media buttons), so the release
+     resource shrinker sees no use of them and removes them. Android then
+     rejects the notification and the app crashes as soon as a song plays. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_music,@drawable/audio_service_*" />

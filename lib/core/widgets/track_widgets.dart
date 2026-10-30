@@ -6,6 +6,7 @@ import '../../audio/playback_controller.dart';
 import '../../data/database/app_database.dart';
 import '../utils/format.dart';
 import 'artwork_image.dart';
+import 'now_playing_bars.dart';
 
 /// Square artwork card with title and subtitle, used in carousels.
 class ArtworkCard extends StatelessWidget {
@@ -21,6 +22,7 @@ class ArtworkCard extends StatelessWidget {
     this.mosaic,
     this.icon = Icons.music_note_rounded,
     this.badge,
+    this.playing = false,
   });
 
   final String? artworkKey;
@@ -34,11 +36,15 @@ class ArtworkCard extends StatelessWidget {
   final IconData icon;
   final Widget? badge;
 
+  /// Marks the song that is playing with animated bars over its artwork.
+  final bool playing;
+
   @override
   Widget build(BuildContext context) {
     final art = mosaic != null
         ? MosaicCover(keys: mosaic!, size: size, seed: title)
         : ArtworkImage(artworkKey: artworkKey, size: size, circle: circle, icon: icon, seed: title);
+    final shown = playing ? NowPlayingOverlay(radius: circle ? size : Radii.md, barSize: size * 0.22, child: art) : art;
     return Semantics(
       button: onTap != null,
       label: [title, ?subtitle].join(', '),
@@ -54,7 +60,7 @@ class ArtworkCard extends StatelessWidget {
             children: [
               Stack(
                 children: [
-                  art,
+                  shown,
                   if (badge != null) Positioned(left: 8, top: 8, child: badge!),
                 ],
               ),
@@ -119,22 +125,26 @@ class SongRow extends ConsumerWidget {
             if (leadingIndex != null)
               SizedBox(
                 width: 32,
-                child: Text(
-                  '$leadingIndex',
-                  textAlign: TextAlign.center,
-                  style: context.text.titleMedium?.copyWith(color: context.surfaces.muted),
-                ),
+                child: isCurrent && !showArtwork
+                    ? const Center(child: NowPlayingBars())
+                    : Text(
+                        '$leadingIndex',
+                        textAlign: TextAlign.center,
+                        style: context.text.titleMedium?.copyWith(color: context.surfaces.muted),
+                      ),
               ),
-            if (showArtwork) ArtworkImage(artworkKey: track.artworkKey, size: 48, radius: Radii.sm, seed: track.title),
+            if (showArtwork)
+              isCurrent
+                  ? NowPlayingOverlay(
+                      radius: Radii.sm,
+                      child: ArtworkImage(artworkKey: track.artworkKey, size: 48, radius: Radii.sm, seed: track.title),
+                    )
+                  : ArtworkImage(artworkKey: track.artworkKey, size: 48, radius: Radii.sm, seed: track.title),
+            if (!showArtwork && leadingIndex == null && isCurrent) const NowPlayingBars(),
           ],
         ),
         title: Row(
           children: [
-            if (isCurrent)
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Icon(Icons.graphic_eq_rounded, size: 16, color: accent),
-              ),
             Flexible(
               child: Text(
                 track.title,

@@ -91,7 +91,7 @@ final collectionProvider = Provider.family<CollectionData?, CollectionArgs>((ref
       return tracks == null ? null : CollectionData(title: 'Tag', tracks: tracks);
     case CollectionType.favorites:
       final tracks = v(ref.watch(favoritesProvider));
-      return tracks == null ? null : CollectionData(title: 'Favorite Songs', tracks: tracks);
+      return tracks == null ? null : CollectionData(title: FavouriteSongsTile.title, tracks: tracks);
     case CollectionType.tv:
       return CollectionData(title: 'TV', tracks: ref.watch(tvTracksProvider));
     case CollectionType.generated:
@@ -138,14 +138,17 @@ class CollectionScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(Spacing.page),
               child: Column(
                 children: [
-                  ArtworkImage(
-                    artworkKey: cover,
-                    size: 200,
-                    radius: Radii.lg,
-                    circle: type == CollectionType.artist,
-                    seed: data.title,
-                    icon: type == CollectionType.artist ? Icons.person_rounded : Icons.album_rounded,
-                  ),
+                  if (type == CollectionType.favorites)
+                    const FavouriteSongsCover(size: 200, radius: Radii.lg)
+                  else
+                    ArtworkImage(
+                      artworkKey: cover,
+                      size: 200,
+                      radius: Radii.lg,
+                      circle: type == CollectionType.artist,
+                      seed: data.title,
+                      icon: type == CollectionType.artist ? Icons.person_rounded : Icons.album_rounded,
+                    ),
                   const SizedBox(height: Spacing.lg),
                   Text(data.title, style: context.text.headlineSmall, textAlign: TextAlign.center),
                   if (data.subtitle?.isNotEmpty ?? false)

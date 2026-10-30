@@ -57,8 +57,8 @@ class _ImportHub extends ConsumerWidget {
                 ),
                 _HubTile(
                   icon: Icons.link_rounded,
-                  title: 'From a URL',
-                  subtitle: 'Direct audio links you may download',
+                  title: 'From a link',
+                  subtitle: 'YouTube, Instagram, SoundCloud and more',
                   onTap: () {
                     close();
                     parent.push(Routes.urlImport);
